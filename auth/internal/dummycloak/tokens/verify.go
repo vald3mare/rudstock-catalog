@@ -5,11 +5,12 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/vald3mare/Rudstock/auth/internal/models"
 )
 
 // Verify проверяет подпись, срок и издателя access-токена.
 // Ошибки: ErrTokenExpired (клиенту идти в /auth/refresh), ErrInvalidToken (всё остальное).
-func (t *token) Verify(access string) (Identity, error) {
+func (t *token) Verify(access string) (models.Identity, error) {
 	var c claims
 	_, err := jwt.ParseWithClaims(access, &c, func(*jwt.Token) (any, error) {
 		return t.secret, nil
@@ -19,18 +20,18 @@ func (t *token) Verify(access string) (Identity, error) {
 		jwt.WithExpirationRequired(),
 	)
 	if errors.Is(err, jwt.ErrTokenExpired) {
-		return Identity{}, ErrTokenExpired
+		return models.Identity{}, ErrTokenExpired
 	}
 	if err != nil {
-		return Identity{}, ErrInvalidToken
+		return models.Identity{}, ErrInvalidToken
 	}
 
 	userID, err := uuid.Parse(c.Subject)
 	if err != nil {
-		return Identity{}, ErrInvalidToken
+		return models.Identity{}, ErrInvalidToken
 	}
 
-	return Identity{
+	return models.Identity{
 		UserID:    userID,
 		Role:      c.Role,
 		SessionID: c.SessionID,

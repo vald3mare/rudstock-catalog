@@ -11,16 +11,10 @@ import (
 )
 
 type token struct {
-	secret    []byte
-	publisher string
-	ttl       time.Duration
-}
-
-// то что мы достаем из Verify
-type Identity struct {
-	UserID    uuid.UUID
-	Role      models.Role
-	SessionID uuid.UUID
+	secret      []byte
+	publisher   string
+	ttl         time.Duration
+	refreshSize int // длина refresh-токена в байтах до кодирования
 }
 
 type claims struct {
@@ -32,16 +26,22 @@ type claims struct {
 // сущность по управлению токенами
 type Emitter interface {
 	Emit(userID uuid.UUID, role models.Role, sessionID uuid.UUID) (string, error)
-	Verify(access string) (Identity, error)
+	Verify(access string) (models.Identity, error)
 	Refresh() (raw string, hash []byte, err error)
 	HashRefresh(raw string) []byte
 }
 
-const minSecretSize = 32
+const (
+	minSecretSize  = 32
+	minRefreshSize = 16 // 128 бит: меньше уже можно подбирать
+)
 
-func NewEmitter(secret []byte, publisher string, ttl time.Duration) (Emitter, error) {
+func NewEmitter(secret []byte, publisher string, ttl time.Duration, refreshSize int) (Emitter, error) {
 	if len(secret) < minSecretSize {
 		return nil, fmt.Errorf("jwt secret must be at least %d bytes", minSecretSize)
+	}
+	if refreshSize < minRefreshSize {
+		return nil, fmt.Errorf("refresh token must be at least %d bytes", minRefreshSize)
 	}
 	if publisher == "" {
 		return nil, errors.New("jwt publisher is empty")
@@ -51,8 +51,9 @@ func NewEmitter(secret []byte, publisher string, ttl time.Duration) (Emitter, er
 	}
 
 	return &token{
-		secret:    secret,
-		publisher: publisher,
-		ttl:       ttl,
+		secret:      secret,
+		publisher:   publisher,
+		ttl:         ttl,
+		refreshSize: refreshSize,
 	}, nil
 }

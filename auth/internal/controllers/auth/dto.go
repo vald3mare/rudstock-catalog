@@ -40,7 +40,7 @@ type AuthResponse struct {
 	User    UserResponse `json:"user"`
 }
 
-func toTokensResponse(t authsvc.Tokens) TokensResponse {
+func toTokensResponse(t models.Tokens) TokensResponse {
 	return TokensResponse{
 		Access:  t.Access,
 		Refresh: t.Refresh,
@@ -70,5 +70,20 @@ func (r LoginRequest) toInput() authsvc.LoginUserInput {
 	return authsvc.LoginUserInput{
 		Email:    r.Email,
 		Password: r.Password,
+	}
+}
+
+// VerifyResponse ответ /auth/verify: кто пришёл с этим access-токеном
+type VerifyResponse struct {
+	UserID    uuid.UUID   `json:"user_id"`
+	Role      models.Role `json:"role"`
+	SessionID uuid.UUID   `json:"session_id"`
+}
+
+func toVerifyResponse(id models.Identity) VerifyResponse {
+	return VerifyResponse{
+		UserID:    id.UserID,
+		Role:      id.Role,
+		SessionID: id.SessionID,
 	}
 }

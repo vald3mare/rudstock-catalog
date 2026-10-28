@@ -7,7 +7,7 @@ import (
 )
 
 // POST /auth/logout
-func (h *SessionHandler) Logout(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	var req RefreshRequest
 	if err := httpx.DecodeJSON(w, r, &req); err != nil {
 		httpx.WriteError(w, r, err)
@@ -19,6 +19,5 @@ func (h *SessionHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 204 без тела: по контракту logout ничего не возвращает
 	w.WriteHeader(http.StatusNoContent)
 }

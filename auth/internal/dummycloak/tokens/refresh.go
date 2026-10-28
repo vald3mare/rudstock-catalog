@@ -6,12 +6,9 @@ import (
 	"encoding/base64"
 )
 
-// refreshSize длина refresh-токена в байтах до кодирования: 256 бит, подобрать невозможно
-const refreshSize = 32
-
 // Refresh генерирует refresh-токен: raw отдаётся клиенту, hash (sha256) кладётся в sessions.token_hash
 func (t *token) Refresh() (raw string, hash []byte, err error) {
-	b := make([]byte, refreshSize)
+	b := make([]byte, t.refreshSize)
 	if _, err := rand.Read(b); err != nil {
 		return "", nil, err
 	}

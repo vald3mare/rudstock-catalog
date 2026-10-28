@@ -2,19 +2,15 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"net/mail"
-	"strings"
 
-	"github.com/alexedwards/argon2id"
 	"github.com/vald3mare/Rudstock/auth/internal/models"
 )
 
 func (s *authService) Register(ctx context.Context, in RegUserInput) (AuthResult, error) {
-	fmtEmail := strings.ToLower(strings.TrimSpace(in.Email))
-	addr, err := mail.ParseAddress(fmtEmail)
-
-	if err != nil || addr.Address != fmtEmail {
+	email := normalizeEmail(in.Email)
+	addr, err := mail.ParseAddress(email)
+	if err != nil || addr.Address != email {
 		return AuthResult{}, models.ErrInvalidEmail
 	}
 
@@ -22,25 +18,7 @@ func (s *authService) Register(ctx context.Context, in RegUserInput) (AuthResult
 		return AuthResult{}, models.ErrWeakPassword
 	}
 
-	hash, err := argon2id.CreateHash(in.Password, argon2id.DefaultParams)
-	if err != nil {
-		return AuthResult{}, fmt.Errorf("hash password: %w", err)
-	}
-
-	user := models.User{
-		Email:        fmtEmail,
-		PasswordHash: hash,
-		Role:         models.RoleCustomer,
-		IsActive:     true, // false = заблокирован
-	}
-
-	id, err := s.userRepo.Create(ctx, user)
-	if err != nil {
-		return AuthResult{}, err
-	}
-	user.ID = id
-
-	tokens, err := s.startSession(ctx, user)
+	user, tokens, err := s.authRepo.Register(ctx, email, in.Password)
 	if err != nil {
 		return AuthResult{}, err
 	}

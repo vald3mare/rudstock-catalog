@@ -32,6 +32,16 @@ type Config struct {
 	RefreshTTL time.Duration `env:"REFRESH_TTL" envDefault:"720h"`
 	// RefreshMaxTTL абсолютный предел от ввода пароля, дальше только новый login.
 	RefreshMaxTTL time.Duration `env:"REFRESH_MAX_TTL" envDefault:"2160h"`
+	// RefreshTokenBytes длина refresh-токена в байтах до кодирования, не меньше 16; 32 = 256 бит.
+	RefreshTokenBytes int `env:"REFRESH_TOKEN_BYTES" envDefault:"32"`
+
+	// Argon2 параметры хеширования паролей. Каждый хеш хранит свои параметры,
+	// поэтому смена значений не ломает старые пароли: они проверяются со своими.
+	Argon2Memory      uint32 `env:"ARGON2_MEMORY" envDefault:"65536"` // KiB, 64 MiB на одно хеширование
+	Argon2Iterations  uint32 `env:"ARGON2_ITERATIONS" envDefault:"1"`
+	Argon2Parallelism uint8  `env:"ARGON2_PARALLELISM" envDefault:"2"`
+	Argon2SaltLength  uint32 `env:"ARGON2_SALT_LENGTH" envDefault:"16"`
+	Argon2KeyLength   uint32 `env:"ARGON2_KEY_LENGTH" envDefault:"32"`
 }
 
 // Load читает .env (если он есть), затем конфигурацию из окружения

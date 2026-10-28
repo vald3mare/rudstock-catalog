@@ -6,16 +6,19 @@ import (
 	"github.com/vald3mare/Rudstock/auth/internal/controllers/auth"
 )
 
+// NewRouter вешает ручки; requireAuth собирается в cmd/app и закрывает ручки, которым нужен access-токен.
 func NewRouter(
-	credentials *auth.CredentialsHandler,
-	sessions *auth.SessionHandler,
+	authHandler *auth.AuthHandler,
+	requireAuth func(http.Handler) http.Handler,
 ) http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /auth/register", credentials.Register)
-	mux.HandleFunc("POST /auth/login", credentials.Login)
-	mux.HandleFunc("POST /auth/refresh", sessions.Refresh)
-	mux.HandleFunc("POST /auth/logout", sessions.Logout)
+	mux.HandleFunc("POST /auth/register", authHandler.Register)
+	mux.HandleFunc("POST /auth/login", authHandler.Login)
+	mux.HandleFunc("POST /auth/refresh", authHandler.Refresh)
+	mux.HandleFunc("POST /auth/logout", authHandler.Logout)
+
+	mux.Handle("GET /auth/verify", requireAuth(http.HandlerFunc(authHandler.Verify)))
 
 	return mux
 }

@@ -6,14 +6,15 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/vald3mare/Rudstock/auth/internal/models"
 	"github.com/vald3mare/Rudstock/auth/internal/platform/errs"
 	"github.com/vald3mare/Rudstock/auth/internal/platform/httpx"
-	"github.com/vald3mare/Rudstock/auth/internal/tokens"
 )
 
-// verifier что middleware нужно от пакета tokens
+// verifier что middleware нужно от сервиса: проверка access-токена идёт по тем же слоям,
+// что и ручки (service -> repo -> keycloak), сама middleware токены не разбирает
 type verifier interface {
-	Verify(access string) (tokens.Identity, error)
+	CheckExpire(ctx context.Context, access string) (models.Identity, error)
 }
 
 // identityKey закрытый тип ключа: чужой пакет не сможет ни прочитать, ни подменить значение в контексте
@@ -29,14 +30,9 @@ func Middleware(v verifier, next http.Handler) http.Handler {
 			return
 		}
 
-		identity, err := v.Verify(access)
+		identity, err := v.CheckExpire(r.Context(), access)
 		if err != nil {
-			// отдельный слаг для истёкшего: фронт по нему идёт в /auth/refresh, а не на страницу входа
-			if errors.Is(err, tokens.ErrTokenExpired) {
-				httpx.WriteError(w, r, errs.Unauthorized("token-expired", "Access token expired", err))
-				return
-			}
-			httpx.WriteError(w, r, errs.Unauthorized("invalid-token", "Invalid access token", err))
+			httpx.WriteError(w, r, mapTokenError(err))
 			return
 		}
 
@@ -46,9 +42,22 @@ func Middleware(v verifier, next http.Handler) http.Handler {
 }
 
 // IdentityFrom возвращает того, кого пропустил Middleware. false значит ручка не под Middleware.
-func IdentityFrom(ctx context.Context) (tokens.Identity, bool) {
-	identity, ok := ctx.Value(identityKey{}).(tokens.Identity)
+func IdentityFrom(ctx context.Context) (models.Identity, bool) {
+	identity, ok := ctx.Value(identityKey{}).(models.Identity)
 	return identity, ok
+}
+
+// mapTokenError отдельный слаг для истёкшего: фронт по нему идёт в /auth/refresh, а не на страницу входа.
+// Всё неизвестное (например, keycloak недоступен) уходит как есть, WriteError ответит 500.
+func mapTokenError(err error) error {
+	switch {
+	case errors.Is(err, models.ErrTokenExpired):
+		return errs.Unauthorized("token-expired", "Access token expired", err)
+	case errors.Is(err, models.ErrInvalidToken):
+		return errs.Unauthorized("invalid-token", "Invalid access token", err)
+	default:
+		return err
+	}
 }
 
 // bearer достаёт токен из заголовка; схема по RFC 6750 регистронезависимая

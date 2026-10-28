@@ -3,7 +3,7 @@ package auth
 import (
 	"net/http"
 
-	"github.com/vald3mare/Rudstock/catalog/internal/platform/httpx"
+	"github.com/vald3mare/rudstock-platform/httpx"
 )
 
 // Заглушка до появления сервиса auth: пропускает запрос только с тестовым заголовком.

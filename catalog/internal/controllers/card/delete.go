@@ -3,7 +3,7 @@ package card
 import (
 	"net/http"
 
-	"github.com/vald3mare/Rudstock/catalog/internal/platform/httpx"
+	"github.com/vald3mare/rudstock-platform/httpx"
 )
 
 // DELETE /admin/cards/{id}

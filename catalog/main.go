@@ -13,9 +13,9 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/vald3mare/Rudstock/catalog/cmd/app"
+	"github.com/vald3mare/Rudstock/catalog/internal/config"
 	"github.com/vald3mare/Rudstock/catalog/internal/infrastructure/middleware/cors"
-	"github.com/vald3mare/Rudstock/catalog/internal/platform/config"
-	"github.com/vald3mare/Rudstock/catalog/internal/platform/httpx"
+	"github.com/vald3mare/rudstock-platform/httpx"
 )
 
 func Health(w http.ResponseWriter, r *http.Request) {

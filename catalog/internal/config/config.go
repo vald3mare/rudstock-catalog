@@ -1,12 +1,6 @@
 package config
 
-import (
-	"errors"
-	"io/fs"
-
-	"github.com/caarlos0/env/v11"
-	"github.com/joho/godotenv"
-)
+import platformconfig "github.com/vald3mare/rudstock-platform/config"
 
 // Config собирается из переменных окружения на старте приложения.
 // У всего, кроме секретов, есть значение по умолчанию; секреты обязательны,
@@ -31,14 +25,8 @@ type Config struct {
 // Load читает .env (если он есть), затем конфигурацию из окружения
 // и проверяет обязательные поля.
 func Load() (*Config, error) {
-	// .env нужен только локально, в проде переменные задаются окружением.
-	// Отсутствие файла не ошибка, а вот битый файл это ошибка.
-	if err := godotenv.Load(); err != nil && !errors.Is(err, fs.ErrNotExist) {
-		return nil, err
-	}
-
 	cfg := &Config{}
-	if err := env.Parse(cfg); err != nil {
+	if err := platformconfig.Load(cfg); err != nil {
 		return nil, err
 	}
 	return cfg, nil

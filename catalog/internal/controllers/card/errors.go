@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/vald3mare/Rudstock/catalog/internal/models"
-	"github.com/vald3mare/Rudstock/catalog/internal/platform/errs"
+	"github.com/vald3mare/rudstock-platform/errs"
 )
 
 // mapCardError переводит доменные ошибки в errs, чтобы httpx выбрал правильный код.

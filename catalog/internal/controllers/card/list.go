@@ -3,8 +3,8 @@ package card
 import (
 	"net/http"
 
-	"github.com/vald3mare/Rudstock/catalog/internal/platform/httpx"
 	"github.com/vald3mare/Rudstock/catalog/internal/services/card"
+	"github.com/vald3mare/rudstock-platform/httpx"
 )
 
 // GET /cards?category_id=&page=&limit=

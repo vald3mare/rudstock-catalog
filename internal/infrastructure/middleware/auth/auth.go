@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/vald3mare/rudstock-platform/httpx"
@@ -20,6 +21,8 @@ func Middleware(debugToken string, next http.Handler) http.Handler {
 			return
 		}
 
+		var aboba string = "aboba"
+		fmt.Println(aboba)
 		// пропуск: сами ничего не пишем, ответ формирует хендлер
 		next.ServeHTTP(w, r)
 	})
